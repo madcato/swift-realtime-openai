@@ -172,7 +172,7 @@ extension Tool.Choice: Codable {
 	public init(from decoder: any Decoder) throws {
 		if let string = try? String(from: decoder) {
 			switch string {
-				case "none": self = .none
+				case "none", "not implemented": self = .none
 				case "auto": self = .auto
 				case "required": self = .required
 				default: throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Invalid tool choice: \(string)"))

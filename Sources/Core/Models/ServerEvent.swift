@@ -45,6 +45,13 @@ import MetaCodable
 	/// - Parameter previousItemId: The ID of the item that precedes this one, if any.
 	@CodedAs("conversation.item.created")
 	case conversationItemCreated(eventId: String, item: Item, previousItemId: String?)
+  
+  /// Returned when a conversation is created.
+  /// - Parameter eventId: The unique ID of the server event.
+  /// - Parameter conversation: Converstation object
+  /// - Parameter previousItemId: The ID of the item that precedes this one, if any.
+  @CodedAs("conversation.created")
+  case conversationCreated(eventId: String, conversation: ConversationModel, previousItemId: String?)
 
 	/// Returned when a conversation item is added.
 	///
@@ -293,7 +300,7 @@ import MetaCodable
 		itemId: String,
 		outputIndex: Int,
 		contentIndex: Int,
-		part: Item.ContentPart
+		part: Item.ContentPart?
 	)
 
 	/// Returned when the text value of an `outputText` content part is updated.
@@ -523,6 +530,14 @@ import MetaCodable
 	/// - Parameter rateLimits: List of rate limit information.
 	@CodedAs("rate_limits.updated")
 	case rateLimitsUpdated(eventId: String, rateLimits: [RateLimit])
+  
+  /// Ping
+  ///
+  /// - Parameter eventId: The unique ID of the server event.
+  /// - Parameter timestamp: Current date time UNIX format
+  /// - Parameter previousItemId: The ID of the item that precedes this one, if any.
+  @CodedAs("ping")
+  case ping(eventId: String, timestamp: TimeInterval, previousItemId: String?)
 }
 
 extension ServerEvent: Identifiable {
@@ -541,6 +556,7 @@ extension ServerEvent: Identifiable {
 			case let .conversationItemInputAudioTranscriptionFailed(id, _, _, _): id
 			case let .conversationItemTruncated(id, _, _, _): id
 			case let .conversationItemDeleted(id, _): id
+      case let .conversationCreated(id, _, _): id
 			case let .inputAudioBufferCommitted(id, _, _): id
 			case let .inputAudioBufferCleared(id): id
 			case let .inputAudioBufferSpeechStarted(id, _, _): id
@@ -571,6 +587,7 @@ extension ServerEvent: Identifiable {
 			case let .responseMCPCallCompleted(id, _, _): id
 			case let .responseMCPCallFailed(id, _, _): id
 			case let .rateLimitsUpdated(id, _): id
+      case let .ping(id, _, _): id
 		}
 	}
 }

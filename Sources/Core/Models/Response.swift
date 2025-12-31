@@ -64,11 +64,11 @@ public struct Response: Identifiable, Equatable, Hashable, Codable, Sendable {
 	}
 
 	public struct Usage: Equatable, Hashable, Codable, Sendable {
-		public let totalTokens: Int
-		public let inputTokens: Int
-		public let outputTokens: Int
-		public let inputTokenDetails: InputTokenDetails
-		public let outputTokenDetails: OutputTokenDetails
+		public let totalTokens: Int?
+		public let inputTokens: Int?
+		public let outputTokens: Int?
+		public let inputTokenDetails: InputTokenDetails?
+		public let outputTokenDetails: OutputTokenDetails?
 
 		public struct InputTokenDetails: Equatable, Hashable, Codable, Sendable {
 			public let textTokens: Int

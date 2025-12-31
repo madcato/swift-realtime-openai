@@ -59,9 +59,9 @@ import MetaCodable
 		public var role: Role
 
 		/// The content of the message.
-		public var content: [Content]
+		public var content: [Content]?
 
-		public init(id: String, status: Status = .completed, role: Role, content: [Content]) {
+		public init(id: String, status: Status = .completed, role: Role, content: [Content]? = nil) {
 			self.id = id
 			self.role = role
 			self.status = status
@@ -440,7 +440,7 @@ extension Item.Message.Content: Codable {
 			case "input_text":
 				let container = try decoder.container(keyedBy: Text.CodingKeys.self)
 				self = try .inputText(container.decode(String.self, forKey: .text))
-			case "output_audio":
+			case "output_audio", "audio":
 				self = try .audio(Item.Audio(from: decoder))
 			case "input_audio":
 				self = try .inputAudio(Item.Audio(from: decoder))

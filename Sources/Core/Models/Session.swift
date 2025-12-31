@@ -51,7 +51,10 @@ import HelperCoders
 	}
 
 	public enum Voice: String, CaseIterable, Equatable, Hashable, Codable, Sendable {
+    // OpenAI voices
 		case alloy, ash, ballad, coral, echo, sage, shimmer, verse, marin, cedar
+    // xAI voices
+    case Ara, Rex, Sal, Eve, Leo
 	}
 
 	/// The format of input audio.
@@ -241,7 +244,7 @@ import HelperCoders
 			/// `1.0` is the default speed. `0.25` is the minimum speed. `1.5` is the maximum speed.
 			///
 			/// This value can only be changed in between model turns, not while a response is in progress.
-			public var speed: Double
+      public var speed: Double?
 
 			/// The format of output audio.
 			public var format: AudioFormat
@@ -251,9 +254,9 @@ import HelperCoders
 			/// - Parameter voice: The voice the model uses to respond.
 			/// - Parameter speed: The speed of the model's spoken response.
 			/// - Parameter format: The format of output audio.
-			public init(voice: Voice, speed: Double, format: AudioFormat) {
+      public init(voice: Voice, speed: Double? = nil, format: AudioFormat) {
 				self.voice = voice
-				self.speed = speed
+        self.speed = speed
 				self.format = format
 			}
 		}
