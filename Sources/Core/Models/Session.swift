@@ -61,7 +61,104 @@ import HelperCoders
 	public struct AudioFormat: Equatable, Hashable, Codable, Sendable {
 		public var rate: Int
 		public var type: String
+    
+    public init(rate: Int, type: String) {
+      self.rate = rate
+      self.type = type
+    }
 	}
+  
+  /// Configuration for turn detection
+  public struct TurnDetection: Codable, Equatable, Hashable, Sendable {
+    /// The type of turn detection.
+    public enum VAD: String, Codable, Equatable, Hashable, Sendable {
+      case server = "server_vad"
+      case semantic = "semantic_vad"
+    }
+
+    /// The eagerness of the model to respond.
+    public enum Eagerness: String, CaseIterable, Equatable, Hashable, Codable, Sendable {
+      case auto, low, medium, high
+    }
+
+    /// Whether or not to automatically generate a response when a VAD stop event occurs.
+    public var createResponse: Bool
+
+    /// Used only for `semantic` mode. The eagerness of the model to respond.
+    ///
+    /// `low` will wait longer for the user to continue speaking, `high` will respond more quickly. `auto` is the default and is equivalent to `medium`.
+    public var eagerness: Eagerness?
+
+    /// Optional idle timeout after which turn detection will auto-timeout when no additional audio is received.
+    public var idleTimeout: Int?
+
+    /// Whether or not to automatically interrupt any ongoing response with output to the default conversation (i.e. `conversation` of `auto`) when a VAD start event occurs.
+    public var interruptResponse: Bool?
+
+    /// Used only for `server` mode. Amount of audio to include before speech starts (in milliseconds).
+    ///
+    /// Defaults to `300ms`.
+    public var prefixPaddingMs: Int?
+
+    /// Used only for `server` mode. Duration of silence to detect speech stop (in milliseconds).
+    ///
+    /// Defaults to `500ms`.
+    ///
+    /// With shorter values the model will respond more quickly, but may jump in on short pauses from the user.
+    public var silenceDurationMs: Int?
+
+    /// Used only for `server` mode. Activation threshold for VAD (0.0 to 1.0).
+    ///
+    /// A higher threshold will require louder audio to activate the model, and thus might perform better in noisy environments.
+    public var threshold: Double?
+
+    /// The type of turn detection.
+    public var type: VAD
+
+    /// Creates a new `TurnDetection` configuration.
+    ///
+    /// - Parameter createResponse: Whether or not to automatically generate a response when a VAD stop event occurs.
+    /// - Parameter eagerness: Only for `semantic` mode. The eagerness of the model to respond.
+    /// - Parameter idleTimeout: Optional idle timeout after which turn detection will auto-timeout when no additional audio is received.
+    /// - Parameter interruptResponse: Whether or not to automatically interrupt any ongoing response with output to the default conversation when a VAD start event occurs.
+    /// - Parameter prefixPaddingMs: Only for `server` mode. Amount of audio to include before speech starts (in milliseconds).
+    /// - Parameter silenceDurationMs: Only for `server` mode. Duration of silence to detect speech stop (in milliseconds).
+    /// - Parameter threshold: Only for `server` mode. Activation threshold for VAD (0.0 to 1.0).
+    /// - Parameter type: The type of turn detection.
+    public init(createResponse: Bool = true, eagerness: Eagerness? = nil, idleTimeout: Int? = nil, interruptResponse: Bool? = nil, prefixPaddingMs: Int? = nil, silenceDurationMs: Int? = nil, threshold: Double? = nil, type: VAD = .server) {
+      self.createResponse = createResponse
+      self.eagerness = eagerness
+      self.idleTimeout = idleTimeout
+      self.interruptResponse = interruptResponse
+      self.prefixPaddingMs = prefixPaddingMs
+      self.silenceDurationMs = silenceDurationMs
+      self.threshold = threshold
+      self.type = type
+    }
+
+    /// Creates a new `TurnDetection` configuration for Server VAD.
+    ///
+    /// - Parameter createResponse: Whether or not to automatically generate a response when a VAD stop event occurs.
+    /// - Parameter idleTimeout: Optional idle timeout after which turn detection will auto-timeout when no additional audio is received.
+    /// - Parameter interruptResponse: Whether or not to automatically interrupt any ongoing response with output to the default conversation when a VAD start event occurs.
+    /// - Parameter prefixPaddingMs: Amount of audio to include before speech starts (in milliseconds).
+    /// - Parameter silenceDurationMs: Duration of silence to detect speech stop (in milliseconds).
+    /// - Parameter threshold: Activation threshold for VAD (0.0 to 1.0).
+    public static func serverVad(createResponse: Bool = true, idleTimeout: Int? = nil, interruptResponse: Bool? = nil, prefixPaddingMs: Int? = nil, silenceDurationMs: Int? = nil, threshold: Double? = nil) -> TurnDetection {
+      .init(createResponse: createResponse, eagerness: nil, idleTimeout: idleTimeout, interruptResponse: interruptResponse, prefixPaddingMs: prefixPaddingMs, silenceDurationMs: silenceDurationMs, threshold: threshold, type: .server)
+    }
+
+    /// Creates a new `TurnDetection` configuration for Semantic VAD.
+    ///
+    /// - Parameter createResponse: Whether or not to automatically generate a response when a VAD stop event occurs.
+    /// - Parameter eagerness: The eagerness of the model to respond.
+    /// - Parameter idleTimeout: Optional idle timeout after which turn detection will auto-timeout when no additional audio is received.
+    /// - Parameter interruptResponse: Whether or not to automatically interrupt any ongoing response with output to the default conversation when a VAD start event occurs.
+    public static func semanticVad(createResponse: Bool = true, eagerness: Eagerness? = .auto, idleTimeout: Int? = nil, interruptResponse: Bool? = nil) -> TurnDetection {
+      .init(createResponse: createResponse, eagerness: eagerness, idleTimeout: idleTimeout, interruptResponse: interruptResponse, prefixPaddingMs: nil, silenceDurationMs: nil, threshold: nil, type: .semantic)
+    }
+  }
+
 
 	/// Configuration for input and output audio.
 	public struct Audio: Codable, Equatable, Hashable, Sendable {
@@ -95,97 +192,6 @@ import HelperCoders
 
 				/// For far-field microphones such as laptop or conference room microphones
 				case farField = "far_field"
-			}
-
-			/// Configuration for turn detection
-			public struct TurnDetection: Codable, Equatable, Hashable, Sendable {
-				/// The type of turn detection.
-				public enum VAD: String, Codable, Equatable, Hashable, Sendable {
-					case server = "server_vad"
-					case semantic = "semantic_vad"
-				}
-
-				/// The eagerness of the model to respond.
-				public enum Eagerness: String, CaseIterable, Equatable, Hashable, Codable, Sendable {
-					case auto, low, medium, high
-				}
-
-				/// Whether or not to automatically generate a response when a VAD stop event occurs.
-				public var createResponse: Bool
-
-				/// Used only for `semantic` mode. The eagerness of the model to respond.
-				///
-				/// `low` will wait longer for the user to continue speaking, `high` will respond more quickly. `auto` is the default and is equivalent to `medium`.
-				public var eagerness: Eagerness?
-
-				/// Optional idle timeout after which turn detection will auto-timeout when no additional audio is received.
-				public var idleTimeout: Int?
-
-				/// Whether or not to automatically interrupt any ongoing response with output to the default conversation (i.e. `conversation` of `auto`) when a VAD start event occurs.
-				public var interruptResponse: Bool?
-
-				/// Used only for `server` mode. Amount of audio to include before speech starts (in milliseconds).
-				///
-				/// Defaults to `300ms`.
-				public var prefixPaddingMs: Int?
-
-				/// Used only for `server` mode. Duration of silence to detect speech stop (in milliseconds).
-				///
-				/// Defaults to `500ms`.
-				///
-				/// With shorter values the model will respond more quickly, but may jump in on short pauses from the user.
-				public var silenceDurationMs: Int?
-
-				/// Used only for `server` mode. Activation threshold for VAD (0.0 to 1.0).
-				///
-				/// A higher threshold will require louder audio to activate the model, and thus might perform better in noisy environments.
-				public var threshold: Double?
-
-				/// The type of turn detection.
-				public var type: VAD
-
-				/// Creates a new `TurnDetection` configuration.
-				///
-				/// - Parameter createResponse: Whether or not to automatically generate a response when a VAD stop event occurs.
-				/// - Parameter eagerness: Only for `semantic` mode. The eagerness of the model to respond.
-				/// - Parameter idleTimeout: Optional idle timeout after which turn detection will auto-timeout when no additional audio is received.
-				/// - Parameter interruptResponse: Whether or not to automatically interrupt any ongoing response with output to the default conversation when a VAD start event occurs.
-				/// - Parameter prefixPaddingMs: Only for `server` mode. Amount of audio to include before speech starts (in milliseconds).
-				/// - Parameter silenceDurationMs: Only for `server` mode. Duration of silence to detect speech stop (in milliseconds).
-				/// - Parameter threshold: Only for `server` mode. Activation threshold for VAD (0.0 to 1.0).
-				/// - Parameter type: The type of turn detection.
-				public init(createResponse: Bool = true, eagerness: Eagerness? = nil, idleTimeout: Int? = nil, interruptResponse: Bool? = nil, prefixPaddingMs: Int? = nil, silenceDurationMs: Int? = nil, threshold: Double? = nil, type: VAD = .server) {
-					self.createResponse = createResponse
-					self.eagerness = eagerness
-					self.idleTimeout = idleTimeout
-					self.interruptResponse = interruptResponse
-					self.prefixPaddingMs = prefixPaddingMs
-					self.silenceDurationMs = silenceDurationMs
-					self.threshold = threshold
-					self.type = type
-				}
-
-				/// Creates a new `TurnDetection` configuration for Server VAD.
-				///
-				/// - Parameter createResponse: Whether or not to automatically generate a response when a VAD stop event occurs.
-				/// - Parameter idleTimeout: Optional idle timeout after which turn detection will auto-timeout when no additional audio is received.
-				/// - Parameter interruptResponse: Whether or not to automatically interrupt any ongoing response with output to the default conversation when a VAD start event occurs.
-				/// - Parameter prefixPaddingMs: Amount of audio to include before speech starts (in milliseconds).
-				/// - Parameter silenceDurationMs: Duration of silence to detect speech stop (in milliseconds).
-				/// - Parameter threshold: Activation threshold for VAD (0.0 to 1.0).
-				public static func serverVad(createResponse: Bool = true, idleTimeout: Int? = nil, interruptResponse: Bool? = nil, prefixPaddingMs: Int? = nil, silenceDurationMs: Int? = nil, threshold: Double? = nil) -> TurnDetection {
-					.init(createResponse: createResponse, eagerness: nil, idleTimeout: idleTimeout, interruptResponse: interruptResponse, prefixPaddingMs: prefixPaddingMs, silenceDurationMs: silenceDurationMs, threshold: threshold, type: .server)
-				}
-
-				/// Creates a new `TurnDetection` configuration for Semantic VAD.
-				///
-				/// - Parameter createResponse: Whether or not to automatically generate a response when a VAD stop event occurs.
-				/// - Parameter eagerness: The eagerness of the model to respond.
-				/// - Parameter idleTimeout: Optional idle timeout after which turn detection will auto-timeout when no additional audio is received.
-				/// - Parameter interruptResponse: Whether or not to automatically interrupt any ongoing response with output to the default conversation when a VAD start event occurs.
-				public static func semanticVad(createResponse: Bool = true, eagerness: Eagerness? = .auto, idleTimeout: Int? = nil, interruptResponse: Bool? = nil) -> TurnDetection {
-					.init(createResponse: createResponse, eagerness: eagerness, idleTimeout: idleTimeout, interruptResponse: interruptResponse, prefixPaddingMs: nil, silenceDurationMs: nil, threshold: nil, type: .semantic)
-				}
 			}
 
 			/// The format of input audio.
@@ -237,7 +243,7 @@ import HelperCoders
 			/// The voice the model uses to respond.
 			///
 			/// Voice cannot be changed during the session once the model has responded with audio at least once.
-			public var voice: Voice
+			public var voice: Voice?
 
 			/// The speed of the model's spoken response.
 			///
@@ -254,7 +260,7 @@ import HelperCoders
 			/// - Parameter voice: The voice the model uses to respond.
 			/// - Parameter speed: The speed of the model's spoken response.
 			/// - Parameter format: The format of output audio.
-      public init(voice: Voice, speed: Double? = nil, format: AudioFormat) {
+      public init(voice: Voice? = nil, speed: Double? = nil, format: AudioFormat) {
 				self.voice = voice
         self.speed = speed
 				self.format = format
@@ -294,6 +300,10 @@ import HelperCoders
 	///
 	/// The instructions are not guaranteed to be followed by the model, but they provide guidance to the model on the desired behavior.
 	public var instructions: String
+  
+  public var turnDetection: TurnDetection?
+  
+  public var voice: Voice?
 
 	/// Maximum number of output tokens for a single assistant response, inclusive of tool calls.
 	///
@@ -304,7 +314,7 @@ import HelperCoders
 	public var modalities: [Modality]?
 
 	/// The Realtime model used for this session.
-	public var model: Model
+	public var model: Model?
 
 	/// Reference to a prompt template and its variables.
 	public var prompt: Prompt?
@@ -320,7 +330,7 @@ import HelperCoders
 	/// Tools available to the model.
 	public var tools: [Tool]?
 
-	public init(id: String? = nil, audio: Audio, instructions: String, maxResponseOutputTokens: MaxResponseOutputTokens? = nil, modalities: [Modality]? = nil, model: Model, prompt: Prompt? = nil, temperature: Double? = nil, toolChoice: Tool.Choice? = nil, tools: [Tool]? = nil) {
+  public init(id: String? = nil, audio: Audio, instructions: String, turnDetection: TurnDetection? = nil, voice: Voice? = nil, maxResponseOutputTokens: MaxResponseOutputTokens? = nil, modalities: [Modality]? = nil, model: Model? = nil, prompt: Prompt? = nil, temperature: Double? = nil, toolChoice: Tool.Choice? = nil, tools: [Tool]? = nil) {
 		self.id = id
 		self.tools = tools
 		self.model = model
@@ -330,6 +340,8 @@ import HelperCoders
 		self.modalities = modalities
 		self.temperature = temperature
 		self.instructions = instructions
+    self.turnDetection = turnDetection
+    self.voice = voice
 		self.maxResponseOutputTokens = maxResponseOutputTokens
 	}
 }
